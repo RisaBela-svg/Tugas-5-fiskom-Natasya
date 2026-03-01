@@ -1,0 +1,71 @@
+ 
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+st.set_page_config(page_title="Dashboard Analisis Data Siswa", layout="wide")
+
+st.title("📊 Dashboard Analisis Data Siswa")
+
+# Upload file
+uploaded_file = st.file_uploader("Upload File Excel", type=["xlsx"])
+
+if uploaded_file is not None:
+    df = pd.read_excel(uploaded_file)
+
+    st.subheader("📄 Data Mentah")
+    st.dataframe(df)
+
+    # Statistik Deskriptif
+    st.subheader("📈 Statistik Deskriptif")
+    st.write(df.describe())
+
+    # Pilih Kolom Numerik
+    numeric_cols = df.select_dtypes(include='number').columns.tolist()
+
+    if numeric_cols:
+        selected_column = st.selectbox("Pilih Kolom untuk Visualisasi", numeric_cols)
+
+        col1, col2 = st.columns(2)
+
+        # Histogram
+        with col1:
+            st.subheader("Histogram")
+            fig, ax = plt.subplots()
+            ax.hist(df[selected_column], bins=10)
+            ax.set_xlabel(selected_column)
+            ax.set_ylabel("Frekuensi")
+            st.pyplot(fig)
+
+        # Boxplot
+        with col2:
+            st.subheader("Boxplot")
+            fig2, ax2 = plt.subplots()
+            ax2.boxplot(df[selected_column])
+            ax2.set_xticklabels([selected_column])
+            st.pyplot(fig2)
+
+        # Diagram Batang (Rata-rata per Kolom)
+        st.subheader("Diagram Batang Rata-rata Nilai")
+        mean_values = df[numeric_cols].mean()
+        fig3, ax3 = plt.subplots(figsize=(10,5))
+        mean_values.plot(kind='bar', ax=ax3)
+        ax3.set_ylabel("Rata-rata")
+        st.pyplot(fig3)
+
+        # Pie Chart (Distribusi Nilai Kategori jika ada)
+        st.subheader("Pie Chart Distribusi Nilai (Frekuensi)")
+        value_counts = df[selected_column].value_counts().head(5)
+        fig4, ax4 = plt.subplots()
+        ax4.pie(value_counts, labels=value_counts.index, autopct='%1.1f%%')
+        st.pyplot(fig4)
+
+        # Heatmap Korelasi
+        st.subheader("🔥 Heatmap Korelasi")
+        fig5, ax5 = plt.subplots(figsize=(10,6))
+        sns.heatmap(df[numeric_cols].corr(), annot=True, cmap="coolwarm", ax=ax5)
+        st.pyplot(fig5)
+
+    else:
+        st.warning("Tidak ada kolom numerik untuk divisualisasikan.")
